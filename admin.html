@@ -1,0 +1,21 @@
+<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>דפי חזרה – ח׳3</title><style>*{box-sizing:border-box}body{margin:0;font-family:Arial,Heebo,sans-serif;background:#f6f7f9;color:#111;line-height:1.7}
+.wrap{max-width:760px;margin:auto;padding:16px}h1{font-size:1.4rem;margin:.2em 0}h2{margin:1.6em 0 .4em;padding-bottom:.2em;border-bottom:2px solid #111}
+.card{background:#fff;border:1px solid #ddd;border-radius:10px;padding:14px;margin:12px 0}
+.q{display:flex;gap:10px;background:#fff;border:1px solid #ddd;border-radius:10px;padding:12px;margin:10px 0}
+.num{font-weight:700;min-width:2.2em;font-size:1.1rem}.star{color:#b8860b}.body{flex:1;min-width:0}.body p{margin:.3em 0}
+img{max-width:100%;height:auto;display:block;margin:.4em 0}math{direction:ltr;unicode-bidi:isolate;font-size:1.15em}
+textarea,select{width:100%;font:inherit;padding:8px;border:1px solid #999;border-radius:6px;margin-top:6px}
+button{font:inherit;padding:10px 18px;border:0;border-radius:8px;background:#111;color:#fff;cursor:pointer}
+.bar{position:sticky;top:0;background:#111;color:#fff;padding:6px 12px;font-size:.9rem;z-index:5}.ok{color:#0a7a2f;font-weight:700}
+footer{text-align:center;color:#666;font-size:.85rem;margin:30px 0 10px}</style></head><body><div class="wrap"><h1>מעקב הגשות – ח׳3</h1><div class="card">העלו את קובץ ה-CSV של גיליון ההגשות (ב-Google Sheets: קובץ ← הורדה ← CSV).<input type="file" id="f" accept=".csv"></div><div id="out"></div></div><script>
+const NAMES=["אבן אדל", "אברהמי רועי יוסף", "ארדניס שי", "אשורי אושר גדעון", "בכר סער", "ברון עוזיאל יובל", "ברייב אור", "ברנר אוריין", "גוסלקר ליאן", "דורי נהוראי", "הראובני עדי דורה", "והבה גאיה ג'ולי", "ויזל הילה", "חנן איתי", "טויטו אורי", "יצחקי רון", "ישחקוב ספיר", "ישראילוב ליאור", "כהן ליעד", "לביא נגה", "מדמוני אגם", "מוסיוב רומי", "מוסרי מאור משה", "מרדכי טל", "סגס איילה", "עבודי עידו מאיר", "פרג' רומי", "קרפוב אריק", "רז איתי", "רייכמן שון", "שובייב ארטור", "שחר נבו"];
+function parse(t){const r=[];let row=[],c='',q=false;for(let i=0;i<t.length;i++){const ch=t[i];if(q){if(ch=='"'){if(t[i+1]=='"'){c+='"';i++}else q=false}else c+=ch}else if(ch=='"')q=true;else if(ch==','){row.push(c);c=''}else if(ch=='\n'){row.push(c);r.push(row);row=[];c=''}else if(ch!='\r')c+=ch}if(c||row.length){row.push(c);r.push(row)}return r}
+document.getElementById('f').onchange=async e=>{const rows=parse((await e.target.files[0].text()).replace(/^\uFEFF/,''));const h=rows[0].map(x=>x.trim().toLowerCase());
+const ix=n=>h.findIndex(x=>x==n||x.includes(n));const iS=ix('student'),iA=ix('answered'),iW=ix('answers'),iSc=ix('score'),iT=ix('submitted_at')>=0?ix('submitted_at'):ix('created');
+const got={};rows.slice(1).filter(r=>r[iS]).forEach(r=>{const n=r[iS].trim().replace(/\s+/g,' ');const g=got[n]||(got[n]={k:0,best:0,bs:0,last:''});g.k++;g.bs=Math.max(g.bs,+r[iSc]||0);g.best=Math.max(g.best,+r[iA]||0);if((r[iT]||'')>g.last)g.last=r[iT]||''});
+const miss=NAMES.filter(n=>!got[n]);let o='<div class="card"><b>הגישו: '+(NAMES.length-miss.length)+' מתוך '+NAMES.length+'</b> · לא הגישו: '+miss.length+'</div>';
+o+='<div class="card"><b>לא הגישו:</b><br>'+(miss.join('، ')||'כולם הגישו')+'</div><div class="card"><table style="width:100%;border-collapse:collapse">';
+NAMES.forEach(n=>{const r=got[n];o+='<tr><td>'+n+'</td><td>'+(r?'<span class="ok">הגיש</span>':'—')+'</td><td>'+(r?'ציון '+Math.round(100*r.bs/75)+' · נענו '+r.best+' · ניסיונות: '+r.k:'')+'</td><td>'+(r?r.last.slice(0,16).replace('T',' '):'')+'</td></tr>'});
+o+='</table></div><button id="dl">הורדת טבלת הגשות (CSV)</button>';document.getElementById('out').innerHTML=o;
+document.getElementById('dl').onclick=()=>{const c='\uFEFFשם,הגיש,הציון הכי גבוה,הכי הרבה תשובות,מספר ניסיונות,אחרון\n'+NAMES.map(n=>{const r=got[n];return [n,r?'כן':'לא',r?Math.round(100*r.bs/75):0,r?r.best:0,r?r.k:0,r?r.last:''].join(',')}).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([c],{type:'text/csv'}));a.download='submissions.csv';a.click()}}
+</script></body></html>
